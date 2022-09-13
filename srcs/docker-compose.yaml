@@ -1,0 +1,27 @@
+version: "3"
+services:
+  nginx:
+    build: requirements/nginx
+    container_name: nginx
+    networks:
+      - local
+    ports:
+     - 127.0.0.1:80:80
+     - 443:443
+  mariadb:
+    build: requirements/mariadb
+    container_name: mariadb
+    networks:
+      - local
+    ports:
+     - 3306:3306
+  wordpress:
+    build: requirements/wordpress
+    container_name: wordpress
+    networks:
+      - local
+    ports:
+     - 9000:9000
+
+networks:
+  local:

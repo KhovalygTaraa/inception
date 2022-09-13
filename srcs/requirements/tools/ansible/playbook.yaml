@@ -1,0 +1,60 @@
+---
+
+- name: Delete Inception in remote host
+  hosts: vms
+  gather_facts: false
+  tags: [ delete, update ]
+
+  tasks:
+  - name: docker compose down
+    command: make -C ~/inception down
+    ignore_errors: yes
+
+  - name: delete srcs
+    file: 
+      path: ~/inception
+      state: absent
+
+- name: Upload Inception to remote host
+  hosts: vms
+  gather_facts: false
+  tags: [ upload, update ]
+
+  tasks: 
+  - name: upload srcs
+    copy:
+      src: ../../../../srcs
+      dest: ~/inception
+      owner: root
+      group: root
+      mode: '0777'
+
+  - name: clear from ansible  
+    file:
+      path: ~/inception/srcs/requirements/tools/ansible
+      state: absent
+
+  - name: upload Makefile
+    copy:
+      src: ../../../../Makefile
+      dest: ~/inception
+      owner: root
+      group: root
+      mode: '0777'
+
+  - name: clear from ansible cmds  
+    lineinfile:
+      dest: ~/inception/Makefile
+      regexp: '(upload|update|remote_|@ansible-playbook|delete|help|@echo)'
+      state: absent
+
+- name: Build Inception in remote host
+  hosts: vms
+  gather_facts: false
+  tags: build
+
+  tasks:
+  - name: Make
+    command: make -C ~/inception up
+
+...
