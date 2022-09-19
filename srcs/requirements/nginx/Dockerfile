@@ -17,9 +17,9 @@ RUN	apk update && \
 	-sha256 -days 365 -subj "/C=RU/ST=Moscow/L=Moscow/O=42 ecole/OU=21 school/CN=swquinc" && \
 	touch /run/nginx/nginx.pid && \
 	touch /run/openrc/softlevel && \
-	openrc && \
-	rc-service nginx start && \
-	nginx -s stop
+	openrc
+#	rc-service nginx start && \
+#	nginx -s stop
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
 

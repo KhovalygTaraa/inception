@@ -1,27 +1,54 @@
-version: "3"
+version: "3.7"
 services:
   nginx:
     build: requirements/nginx
     container_name: nginx
     networks:
-      - local
+      local:
+        ipv4_address: 192.168.1.4
     ports:
-     - 127.0.0.1:80:80
      - 443:443
+
+#  mariadb:
+#    restart: always
+#    build: requirements/mariadb
+#    container_name: mariadb
+#    volumes:
+#      - type: volume
+#        source: mariadb
+#        target: /app
+#    networks:
+#      local:
+#        ipv4_address: 192.168.1.2
+#
+#  wordpress:
+#    build: requirements/wordpress
+#    container_name: wordpress
+#    volumes:
+#      - type: volume
+#        source: wordpress
+#        target: /app 
+#    networks:
+#      local:
+#        ipv4_address: 192.168.1.3
+
+volumes:
   mariadb:
-    build: requirements/mariadb
-    container_name: mariadb
-    networks:
-      - local
-    ports:
-     - 3306:3306
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/data/mariadb
   wordpress:
-    build: requirements/wordpress
-    container_name: wordpress
-    networks:
-      - local
-    ports:
-     - 9000:9000
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/data/wordpress
 
 networks:
   local:
+    ipam:
+     driver: default
+     config:
+       - subnet: "192.168.1.0/24"

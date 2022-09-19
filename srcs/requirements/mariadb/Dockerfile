@@ -6,11 +6,8 @@ COPY ./conf /app
 
 RUN apk update && \
 	apk upgrade && \
-	apk add su-exec mariadb-openrc mariadb mariadb-client && \
-	mkdir -p /run/openrc/ && \
-	touch /run/openrc/softlevel
+	apk add mariadb su-exec
 
-#ENTRYPOINT ["mariadb", ";"]
-CMD ["sleep", "infinity"]
-
-
+ENTRYPOINT ["/app/setup.sh"]
+CMD ["mariadbd", "--default-file=/app/mariadb.conf"]
+EXPOSE 3306
