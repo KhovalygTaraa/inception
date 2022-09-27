@@ -9,28 +9,29 @@ services:
     ports:
      - 443:443
 
-#  mariadb:
-#    restart: always
-#    build: requirements/mariadb
-#    container_name: mariadb
-#    volumes:
-#      - type: volume
-#        source: mariadb
-#        target: /app
-#    networks:
-#      local:
-#        ipv4_address: 192.168.1.2
-#
-#  wordpress:
-#    build: requirements/wordpress
-#    container_name: wordpress
-#    volumes:
-#      - type: volume
-#        source: wordpress
-#        target: /app 
-#    networks:
-#      local:
-#        ipv4_address: 192.168.1.3
+  mariadb:
+    build: requirements/mariadb
+    container_name: mariadb
+    environment:
+      - DATADIR=${MARIADB_DATADIR}
+    volumes:
+      - type: volume
+        source: mariadb
+        target: ${MARIADB_DATADIR}
+    networks:
+      local:
+        ipv4_address: 192.168.1.2
+
+  wordpress:
+    build: requirements/wordpress
+    container_name: wordpress
+    volumes:
+      - type: volume
+        source: wordpress
+        target: /app 
+    networks:
+      local:
+        ipv4_address: 192.168.1.3
 
 volumes:
   mariadb:
