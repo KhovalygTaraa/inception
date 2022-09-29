@@ -17,7 +17,7 @@ services:
     volumes:
       - type: volume
         source: mariadb
-        target: ${MARIADB_DATADIR}
+        target: /app/data
     networks:
       local:
         ipv4_address: 192.168.1.2

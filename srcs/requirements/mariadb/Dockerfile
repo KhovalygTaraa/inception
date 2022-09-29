@@ -9,6 +9,6 @@ RUN apk update && \
 
 COPY ./conf /app
 
-ENTRYPOINT ["go", "run", "/app/setup.go"]
+ENTRYPOINT ["go", "run", "-modfile=/app/go.mod", "/app/setup.go"]
 CMD ["mariadbd", "--defaults-extra-file=/app/mariadb.conf", "--datadir=/app/data"]
 EXPOSE 3306
