@@ -1,24 +1,26 @@
 package main
 
-import(
-	"os"
+import (
 	"fmt"
-	"strconv"
-	"strings"
+	_ "github.com/go-sql-driver/mysql"
+	"os"
 	"os/exec"
+	"os/signal"
 	"os/user"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
-const(
-	colorReset = "\033[0m"
-	colorRed = "\033[31m"
-	colorGreen = "\033[32m"
+const (
+	colorReset  = "\033[0m"
+	colorRed    = "\033[31m"
+	colorGreen  = "\033[32m"
 	colorYellow = "\033[33m"
-	colorBlue = "\033[34m"
+	colorBlue   = "\033[34m"
 	colorPurple = "\033[35m"
-	colorCyan = "\033[36m"
-	colorWhite = "\033[37m"
+	colorCyan   = "\033[36m"
+	colorWhite  = "\033[37m"
 )
 
 func printColor(color, str string) {
@@ -31,15 +33,15 @@ func printColorln(color, str string) {
 
 func ChownR(path string, uid, gid string) error {
 	function := func(name string, info os.FileInfo, err error) error {
-		if err != nil  {
+		if err != nil {
 			return err
 		}
 		uidDecimal, err := strconv.Atoi(uid)
-		if err != nil  {
+		if err != nil {
 			return err
 		}
 		gidDecimal, err := strconv.Atoi(gid)
-		if err != nil  {
+		if err != nil {
 			return err
 		}
 		err = os.Chown(name, uidDecimal, gidDecimal)
@@ -56,14 +58,14 @@ func strError(errStr string) {
 }
 
 func exitIfError(err error) {
-	if err != nil {	
+	if err != nil {
 		printColorln(colorRed, "[FAILED]")
 		printColorln(colorRed, err.Error())
 		os.Exit(1)
 	}
 }
 
-func prepareMariadbWorkspace(mariadbConf, appDir, dataDir, mysqldDir string){
+func prepareMariadbWorkspace(mariadbConf, appDir, dataDir, mysqldDir string) {
 	printColor(colorCyan, "[Prepare workspace for mariadb...]")
 	mysqlUser, err := user.Lookup("mysql")
 	exitIfError(err)
@@ -73,9 +75,8 @@ func prepareMariadbWorkspace(mariadbConf, appDir, dataDir, mysqldDir string){
 	exitIfError(ChownR(mysqldDir, mysqlUser.Uid, mysqlUser.Gid))
 	exitIfError(ChownR(dataDir, mysqlUser.Uid, mysqlUser.Gid))
 	exitIfError(os.Chmod(mariadbConf, 0644))
-	printColorln(colorGreen, "[SUCCESS]")	
+	printColorln(colorGreen, "[SUCCESS]")
 }
-
 
 func start(args []string) {
 	printColor(colorCyan, "[Golang script starting...]")
@@ -103,9 +104,12 @@ func installMariadb(mariadbConf, dataDir string) {
 }
 
 func startMariadb(args []string) {
-	printColor(colorCyan, "[Mariadb starting...]")
+	printColorln(colorCyan, "[Mariadb running...]")
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig)
 	mariadbd := exec.Command(args[1], args[2], args[3])
-	err := mariadbd.Run()
+	err := mariadbd.Start()
+	mariadbd.Process.Signal(<-sig)
 	exitIfError(err)
 	printColorln(colorGreen, "[SUCCESS]")
 }
@@ -114,7 +118,7 @@ func main() {
 	args := os.Args
 	start(args)
 	if args[1] == "mariadbd" {
-		printColorln(colorCyan, "[Mariadbd]")
+		printColorln(colorCyan, "[Start mariadbd]")
 		checkArgs(args)
 		mariadbConf := strings.Split(args[2], "=")[1]
 		dataDir := strings.Split(args[3], "=")[1]
