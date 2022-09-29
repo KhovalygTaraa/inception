@@ -1,9 +1,9 @@
 ---
 
-- name: Delete Inception in remote host
+- name: Down Inception in remote host
   hosts: vms
   gather_facts: false
-  tags: [ delete, update ]
+  tags: [ remote_down, update ]
 
   tasks:
   - name: docker compose down
@@ -14,6 +14,16 @@
     file: 
       path: ~/inception
       state: absent
+
+- name: Clear Inception in remote host
+  hosts: vms
+  gather_facts: false
+  tags: [ remote_system_prune, update ]
+
+  tasks:
+    - name: docker compose down
+      command: make -C ~/inception system_prune
+      ignore_errors: yes
 
 - name: Upload Inception to remote host
   hosts: vms

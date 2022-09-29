@@ -4,8 +4,8 @@ LABEL maintainer="swquinc"
 
 RUN apk update && \
 	apk upgrade && \
-	apk add mariadb su-exec go && \
-	go install github.com/go-sql-driver/mysql
+	apk add mariadb su-exec go
+#	go get github.com/go-sql-driver/mysql
 
 COPY ./conf /app
 

@@ -14,6 +14,8 @@ up:
 
 down:
 	@docker-compose -f srcs/docker-compose.yaml down
+
+system_prune:
 	@docker system prune -af --volumes
 
 upload:
@@ -22,8 +24,11 @@ upload:
 update:	
 	@ansible-playbook -i srcs/requirements/tools/ansible/inventory srcs/requirements/tools/ansible/playbook.yaml -t update
 
-delete:	
-	@ansible-playbook -i srcs/requirements/tools/ansible/inventory srcs/requirements/tools/ansible/playbook.yaml -t delete
+remote_system_prune:
+	@ansible-playbook -i srcs/requirements/tools/ansible/inventory srcs/requirements/tools/ansible/playbook.yaml -t remote_system_prune
+
+remote_down:
+	@ansible-playbook -i srcs/requirements/tools/ansible/inventory srcs/requirements/tools/ansible/playbook.yaml -t remote_down
 
 remote_up:
 	@ansible-playbook -i srcs/requirements/tools/ansible/inventory srcs/requirements/tools/ansible/playbook.yaml -t build
