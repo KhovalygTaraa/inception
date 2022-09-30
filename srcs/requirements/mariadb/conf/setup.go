@@ -1,11 +1,11 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"os"
 	"os/exec"
-	"os/signal"
 	"os/user"
 	"path/filepath"
 	"strconv"
@@ -78,15 +78,15 @@ func prepareMariadbWorkspace(mariadbConf, appDir, dataDir, mysqldDir string) {
 	printColorln(colorGreen, "[SUCCESS]")
 }
 
-func start(args []string) {
+func validateScriptArgs(args []string) {
 	printColor(colorCyan, "[Golang script starting...]")
 	if len(args) < 2 {
-		strError("invalid number of args, need minimun 2 args")
+		strError("invalid number of args, need minimum 2 args")
 	}
 	printColorln(colorGreen, "[SUCCESS]")
 }
 
-func checkArgs(args []string) {
+func validateMariadbArgs(args []string) {
 	printColor(colorCyan, "[Check args]")
 	if len(args) != 4 {
 		strError("invalid number of args, need 4 args for mariadb")
@@ -103,29 +103,70 @@ func installMariadb(mariadbConf, dataDir string) {
 
 }
 
-func startMariadb(args []string) {
-	printColorln(colorCyan, "[Mariadb running...]")
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig)
+func startMariadb(args []string) *exec.Cmd {
+	printColor(colorCyan, "[Mariadb running...]")
+	//	sig := make(chan os.Signal, 1)
+	//	defer close(sig)
+	//	signal.Notify(sig)
 	mariadbd := exec.Command(args[1], args[2], args[3])
 	err := mariadbd.Start()
-	mariadbd.Process.Signal(<-sig)
+	//	mariadbd.Process.Signal(<-sig)
+	exitIfError(err)
+	printColorln(colorGreen, "[SUCCESS]")
+	return mariadbd
+}
+
+func setRootPassword(rootPassword string) {
+
+	printColor(colorCyan, "[Connect to db...]")
+	db, err := sql.Open("mysql", "root@unix(/run/mysqld/mysqld.sock)/mysql?timeout=30s")
+	defer db.Close()
+	exitIfError(err)
+	printColorln(colorGreen, "[SUCCESS]")
+	for db.Ping() != nil {
+	}
+	rows, err := db.Query("SELECT user, host FROM mysql.user")
+	defer rows.Close()
+	exitIfError(err)
+	for rows.Next() {
+		var user, host string
+		exitIfError(rows.Scan(&user, &host))
+		printColorln(colorPurple, user+" "+host)
+	}
+	printColorln(colorCyan, "[Set root password...]")
+	_, err = db.Exec(fmt.Sprintf("ALTER USER 'root'@'localhost' IDENTIFIED BY '%s'", rootPassword))
+	_, err = db.Exec(fmt.Sprintf("FLUSH PRIVILEGES"))
 	exitIfError(err)
 	printColorln(colorGreen, "[SUCCESS]")
 }
 
 func main() {
 	args := os.Args
-	start(args)
+	isFirstStart := false
+	//var err error
+
+	validateScriptArgs(args)
 	if args[1] == "mariadbd" {
 		printColorln(colorCyan, "[Start mariadbd]")
-		checkArgs(args)
+		validateMariadbArgs(args)
 		mariadbConf := strings.Split(args[2], "=")[1]
 		dataDir := strings.Split(args[3], "=")[1]
 		prepareMariadbWorkspace(mariadbConf, "/app", dataDir, "/run/mysqld")
 		if _, err := os.Stat(dataDir + "/mysql"); os.IsNotExist(err) {
 			installMariadb(args[2], args[3])
+			isFirstStart = true
 		}
-		startMariadb(args)
+		mariadb := startMariadb(args)
+		if isFirstStart {
+			//for {
+			//	err = mariadb.Process.Signal(syscall.Signal(0))
+			//	if err == nil {
+			//		break
+			//	}
+			//}
+			setRootPassword(os.Getenv("MARIADB_ROOT_PASSWORD"))
+		}
+		err := mariadb.Wait()
+		exitIfError(err)
 	}
 }

@@ -13,7 +13,10 @@ services:
     build: requirements/mariadb
     container_name: mariadb
     environment:
-      - DATADIR=${MARIADB_DATADIR}
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - MARIADB_WP_DB=${MARIADB_WP_DB}
+      - MARIADB_WP_USER=${MARIADB_WP_USER}
+      - MARIADB_WP_PASSWORD=${MARIADB_WP_PASSWORD}
     volumes:
       - type: volume
         source: mariadb
