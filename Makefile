@@ -10,7 +10,7 @@ endif
 	touch Hello
 
 up:
-	@docker-compose -f srcs/docker-compose.yaml up -d --build
+	@docker-compose --env-file srcs/.env -f srcs/docker-compose.yaml up -d --build
 
 down:
 	@docker-compose -f srcs/docker-compose.yaml down

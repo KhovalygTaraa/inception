@@ -105,45 +105,39 @@ func installMariadb(mariadbConf, dataDir string) {
 
 func startMariadb(args []string) *exec.Cmd {
 	printColor(colorCyan, "[Mariadb running...]")
-	//	sig := make(chan os.Signal, 1)
-	//	defer close(sig)
-	//	signal.Notify(sig)
 	mariadbd := exec.Command(args[1], args[2], args[3])
 	err := mariadbd.Start()
-	//	mariadbd.Process.Signal(<-sig)
 	exitIfError(err)
 	printColorln(colorGreen, "[SUCCESS]")
 	return mariadbd
 }
 
 func setRootPassword(rootPassword string) {
-
 	printColor(colorCyan, "[Connect to db...]")
-	db, err := sql.Open("mysql", "root@unix(/run/mysqld/mysqld.sock)/mysql?timeout=30s")
+	db, err := sql.Open("mysql", "root@unix(/run/mysqld/mysqld.sock)/")
 	defer db.Close()
 	exitIfError(err)
 	printColorln(colorGreen, "[SUCCESS]")
 	for db.Ping() != nil {
 	}
-	rows, err := db.Query("SELECT user, host FROM mysql.user")
-	defer rows.Close()
-	exitIfError(err)
-	for rows.Next() {
-		var user, host string
-		exitIfError(rows.Scan(&user, &host))
-		printColorln(colorPurple, user+" "+host)
-	}
 	printColorln(colorCyan, "[Set root password...]")
-	_, err = db.Exec(fmt.Sprintf("ALTER USER 'root'@'localhost' IDENTIFIED BY '%s'", rootPassword))
+	_, err = db.Exec(fmt.Sprintf("ALTER USER 'root'@'localhost' IDENTIFIED BY \"%s\"", rootPassword))
 	_, err = db.Exec(fmt.Sprintf("FLUSH PRIVILEGES"))
 	exitIfError(err)
 	printColorln(colorGreen, "[SUCCESS]")
+	//rows, err := db.Query("SELECT user, host, password FROM mysql.user WHERE user = 'root'")
+	//defer rows.Close()
+	//exitIfError(err)
+	//for rows.Next() {
+	//	var user, host, password string
+	//	exitIfError(rows.Scan(&user, &host, &password))
+	//	printColorln(colorPurple, user+" | "+host+" | "+password)
+	//}
 }
 
 func main() {
 	args := os.Args
 	isFirstStart := false
-	//var err error
 
 	validateScriptArgs(args)
 	if args[1] == "mariadbd" {
@@ -158,14 +152,11 @@ func main() {
 		}
 		mariadb := startMariadb(args)
 		if isFirstStart {
-			//for {
-			//	err = mariadb.Process.Signal(syscall.Signal(0))
-			//	if err == nil {
-			//		break
-			//	}
-			//}
 			setRootPassword(os.Getenv("MARIADB_ROOT_PASSWORD"))
+			//prepareDbForWp(os.Getenv("MARIADB_WP_DB"), os.Getenv("MARIADB_WP_USER"), os.Getenv("MARIADB_WP_PASSWORD"))
 		}
+		//printColorln(colorBlue, "Mariadb pid = ")
+		//printColor(colorGreen, strconv.Itoa(mariadb.Process.Pid))
 		err := mariadb.Wait()
 		exitIfError(err)
 	}

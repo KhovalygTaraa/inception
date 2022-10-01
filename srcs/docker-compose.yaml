@@ -7,7 +7,7 @@ services:
       local:
         ipv4_address: 192.168.1.4
     ports:
-     - 443:443
+     - "443:443"
 
   mariadb:
     build: requirements/mariadb
@@ -31,10 +31,12 @@ services:
     volumes:
       - type: volume
         source: wordpress
-        target: /app 
+        target: /app/data
     networks:
       local:
         ipv4_address: 192.168.1.3
+    ports:
+      - "9000:9000"
 
 volumes:
   mariadb:
@@ -55,4 +57,4 @@ networks:
     ipam:
      driver: default
      config:
-       - subnet: "192.168.1.0/24"
+       - subnet: 192.168.1.0/24
