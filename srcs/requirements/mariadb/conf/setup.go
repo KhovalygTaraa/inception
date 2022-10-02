@@ -9,7 +9,6 @@ import (
 	"os/user"
 	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 const (
@@ -65,6 +64,14 @@ func exitIfError(err error) {
 	}
 }
 
+func exitIfErrorDB(_ sql.Result, err error) {
+	if err != nil {
+		printColorln(colorRed, "[FAILED]")
+		printColorln(colorRed, err.Error())
+		os.Exit(1)
+	}
+}
+
 func prepareMariadbWorkspace(mariadbConf, appDir, dataDir, mysqldDir string) {
 	printColor(colorCyan, "[Prepare workspace for mariadb...]")
 	mysqlUser, err := user.Lookup("mysql")
@@ -113,26 +120,35 @@ func startMariadb(args []string) *exec.Cmd {
 }
 
 func setRootPassword(rootPassword string) {
-	printColor(colorCyan, "[Connect to db...]")
+	printColor(colorCyan, "[SetRootPassword: Connect to db...]")
 	db, err := sql.Open("mysql", "root@unix(/run/mysqld/mysqld.sock)/")
 	defer db.Close()
 	exitIfError(err)
 	printColorln(colorGreen, "[SUCCESS]")
 	for db.Ping() != nil {
 	}
-	printColorln(colorCyan, "[Set root password...]")
-	_, err = db.Exec(fmt.Sprintf("ALTER USER 'root'@'localhost' IDENTIFIED BY \"%s\"", rootPassword))
-	_, err = db.Exec(fmt.Sprintf("FLUSH PRIVILEGES"))
+	printColorln(colorCyan, "[Set root password: alter user and flush privileges...]")
+	exitIfErrorDB(db.Exec(fmt.Sprintf("ALTER USER 'root'@'localhost' IDENTIFIED BY \"%s\"", rootPassword)))
+	exitIfErrorDB(db.Exec(fmt.Sprintf("FLUSH PRIVILEGES")))
+	printColorln(colorGreen, "[SUCCESS]")
+}
+
+func prepareDbForWp(mariadbWpDB, mariadbWpUser, mariadbWpPassword, rootPassword string) {
+	printColor(colorCyan, "[prepareDbForWp: Connect to db...]")
+	db, err := sql.Open("mysql", fmt.Sprintf("root:%s@unix(/run/mysqld/mysqld.sock)/", rootPassword))
+	defer db.Close()
 	exitIfError(err)
 	printColorln(colorGreen, "[SUCCESS]")
-	//rows, err := db.Query("SELECT user, host, password FROM mysql.user WHERE user = 'root'")
-	//defer rows.Close()
-	//exitIfError(err)
-	//for rows.Next() {
-	//	var user, host, password string
-	//	exitIfError(rows.Scan(&user, &host, &password))
-	//	printColorln(colorPurple, user+" | "+host+" | "+password)
-	//}
+	for db.Ping() != nil {
+	}
+	printColor(colorCyan, "[prepareDbForWp: create db, user, set pass and flush privileges]")
+	exitIfErrorDB(db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", mariadbWpDB)))
+	exitIfErrorDB(db.Exec(fmt.Sprintf("CREATE USER IF NOT EXISTS '%s'@'%%' IDENTIFIED BY '%s'", mariadbWpUser, mariadbWpPassword)))
+	exitIfErrorDB(db.Exec(fmt.Sprintf("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'", mariadbWpUser, mariadbWpPassword)))
+	exitIfErrorDB(db.Exec(fmt.Sprintf("GRANT ALL ON %s.* TO '%s'@'%%'", mariadbWpDB, mariadbWpUser)))
+	exitIfErrorDB(db.Exec(fmt.Sprintf("GRANT ALL ON %s.* TO '%s'@'localhost'", mariadbWpDB, mariadbWpUser)))
+	exitIfErrorDB(db.Exec(fmt.Sprintf("FLUSH PRIVILEGES")))
+	printColorln(colorGreen, "[SUCCESS]")
 }
 
 func main() {
@@ -143,20 +159,16 @@ func main() {
 	if args[1] == "mariadbd" {
 		printColorln(colorCyan, "[Start mariadbd]")
 		validateMariadbArgs(args)
-		mariadbConf := strings.Split(args[2], "=")[1]
-		dataDir := strings.Split(args[3], "=")[1]
-		prepareMariadbWorkspace(mariadbConf, "/app", dataDir, "/run/mysqld")
-		if _, err := os.Stat(dataDir + "/mysql"); os.IsNotExist(err) {
+		prepareMariadbWorkspace(os.Getenv("MARIADB_CONFIG"), os.Getenv("APP_DIR"), os.Getenv("DATA_DIR"), "/run/mysqld")
+		if _, err := os.Stat(os.Getenv("DATA_DIR") + "/mysql"); os.IsNotExist(err) {
 			installMariadb(args[2], args[3])
 			isFirstStart = true
 		}
 		mariadb := startMariadb(args)
 		if isFirstStart {
 			setRootPassword(os.Getenv("MARIADB_ROOT_PASSWORD"))
-			//prepareDbForWp(os.Getenv("MARIADB_WP_DB"), os.Getenv("MARIADB_WP_USER"), os.Getenv("MARIADB_WP_PASSWORD"))
+			prepareDbForWp(os.Getenv("MARIADB_WP_DB"), os.Getenv("MARIADB_WP_USER"), os.Getenv("MARIADB_WP_PASSWORD"), os.Getenv("MARIADB_ROOT_PASSWORD"))
 		}
-		//printColorln(colorBlue, "Mariadb pid = ")
-		//printColor(colorGreen, strconv.Itoa(mariadb.Process.Pid))
 		err := mariadb.Wait()
 		exitIfError(err)
 	}

@@ -15,6 +15,7 @@ up:
 down:
 	@docker-compose -f srcs/docker-compose.yaml down
 	@rm -rf ../data/mariadb/*
+	@rm -rf ../data/wordpress/*
 
 system_prune:
 	@docker system prune -af --volumes

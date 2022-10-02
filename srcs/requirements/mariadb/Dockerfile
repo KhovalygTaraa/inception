@@ -2,18 +2,22 @@ FROM alpine:3.16
 
 LABEL maintainer="swquinc"
 
-WORKDIR /app
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/main" >> /etc/apk/repositories &&\
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/community" >> /etc/apk/repositories &&\
+    apk update &&\
+	apk upgrade &&\
+	apk add mariadb &&\
+    apk add mariadb-client &&\
+    apk add go &&\
+    apk add su-exec
 
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/main" >> /etc/apk/repositories && \
-    echo "http://dl-cdn.alpinelinux.org/alpine/v3.16/community" >> /etc/apk/repositories && \
-    apk update && \
-	apk upgrade && \
-	apk add mariadb=10.6.9-r0 && \
-    apk add mariadb-client=10.6.9-r0 && \
-    apk add go=1.18.6-r0 && \
-    apk add su-exec=0.2-r1
+ENV MARIADB_CONFIG=/app/mariadb.conf\
+    DATA_DIR=/app/data\
+    APP_DIR=/app
 
-COPY ./conf /app
+WORKDIR $APP_DIR
+
+COPY ./conf $APP_DIR
 
 ENTRYPOINT ["go", "run", "setup.go"]
 CMD ["mariadbd", "--defaults-extra-file=/app/mariadb.conf", "--datadir=/app/data"]

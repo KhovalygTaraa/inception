@@ -3,6 +3,11 @@ services:
   nginx:
     build: requirements/nginx
     container_name: nginx
+    volumes:
+      - type: volume
+        source: wordpress
+        read_only: true
+        target: /app/data/
     networks:
       local:
         ipv4_address: 192.168.1.4
@@ -11,12 +16,13 @@ services:
 
   mariadb:
     build: requirements/mariadb
-    container_name: mariadb
+    container_name: ${MARIADB_HOST}
     environment:
       - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
       - MARIADB_WP_DB=${MARIADB_WP_DB}
       - MARIADB_WP_USER=${MARIADB_WP_USER}
       - MARIADB_WP_PASSWORD=${MARIADB_WP_PASSWORD}
+      - MARIADB_HOST=${MARIADB_HOST}
     volumes:
       - type: volume
         source: mariadb
@@ -24,10 +30,17 @@ services:
     networks:
       local:
         ipv4_address: 192.168.1.2
+    ports:
+      - "3306:3306"
 
   wordpress:
     build: requirements/wordpress
     container_name: wordpress
+    environment:
+      - MARIADB_WP_DB=${MARIADB_WP_DB}
+      - MARIADB_WP_USER=${MARIADB_WP_USER}
+      - MARIADB_WP_PASSWORD=${MARIADB_WP_PASSWORD}
+      - MARIADB_HOST=${MARIADB_HOST}
     volumes:
       - type: volume
         source: wordpress
