@@ -66,7 +66,7 @@ func createUser(user, password string) {
 	addUser := exec.Command("adduser", "-D", "--home", "/app/data", "--shell", "sh", user)
 	err := addUser.Run()
 	exitIfError(err)
-	setPassword := exec.Command("bash", "-c", fmt.Sprintf("echo %s:%s | chpasswd"), user, password)
+	setPassword := exec.Command("bash", "-c", fmt.Sprintf("echo %s:%s | chpasswd", user, password))
 	err = setPassword.Run()
 	exitIfError(err)
 }
