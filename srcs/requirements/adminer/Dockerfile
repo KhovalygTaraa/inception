@@ -22,13 +22,12 @@ RUN apk update &&\
     apk add php8-pecl-imagick &&\
     apk add pcre
 
-ENV WP_CONFIG="/app/wp-config.php"\
-    WORDPRESS_PATH="/app/data/wordpress"\
+ENV ADMINER_PATH="/app/data/adminer"\
     PHP_FPM_GLOBAL_CONFIG="/app/php-fpm.conf"\
     PHP_FPM_WWW_CONFIG="/app/www.conf"\
     APP_DIR="/app"\
     DATA_DIR="/app/data"\
-    WORDPRESS_LINK="https://wordpress.org/wordpress-6.0.tar.gz"
+    ADMINER_LINK="https://github.com/vrana/adminer/releases/download/v4.8.1/adminer-4.8.1-mysql.php"
 
 WORKDIR $APP_DIR
 

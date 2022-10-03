@@ -3,20 +3,22 @@ services:
   nginx:
     build: requirements/nginx
     container_name: nginx
+    restart: always
     volumes:
       - type: volume
         source: wordpress
         read_only: true
-        target: /app/data/
+        target: /app/data1
     networks:
       local:
-        ipv4_address: 192.168.1.4
+        ipv4_address: 192.168.1.2
     ports:
      - "443:443"
 
   mariadb:
     build: requirements/mariadb
     container_name: ${MARIADB_HOST}
+    restart: always
     environment:
       - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
       - MARIADB_WP_DB=${MARIADB_WP_DB}
@@ -29,13 +31,12 @@ services:
         target: /app/data
     networks:
       local:
-        ipv4_address: 192.168.1.2
-    ports:
-      - "3306:3306"
+        ipv4_address: 192.168.1.3
 
   wordpress:
     build: requirements/wordpress
     container_name: wordpress
+    restart: always
     environment:
       - MARIADB_WP_DB=${MARIADB_WP_DB}
       - MARIADB_WP_USER=${MARIADB_WP_USER}
@@ -47,9 +48,35 @@ services:
         target: /app/data
     networks:
       local:
-        ipv4_address: 192.168.1.3
-    ports:
-      - "9000:9000"
+        ipv4_address: 192.168.1.4
+
+  adminer:
+    build: requirements/adminer
+    container_name: adminer
+    restart: always
+    volumes:
+      - type: volume
+        source: adminer
+        target: /app/data
+    networks:
+      local:
+        ipv4_address: 192.168.1.5
+
+  ftp:
+    build: requirements/ftp
+    container_name: ftp
+    restart: always
+    environment:
+      - FTP_USER=${FTP_USER}
+      - FTP_PASSWORD=${FTP_PASSWORD}
+    volumes:
+      - type: volume
+        source: wordpress
+        target: /app/data
+    networks:
+      local:
+        ipv4_address: 192.168.1.6
+
 
 volumes:
   mariadb:
@@ -64,6 +91,12 @@ volumes:
       type: none
       o: bind
       device: ${HOME}/data/wordpress
+  adminer:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/data/adminer
 
 networks:
   local:

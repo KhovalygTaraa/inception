@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"os"
 	"os/exec"
 	"os/user"
@@ -80,7 +79,6 @@ func moveFile(from, to string) {
 
 func moveConfigs() {
 	printColor(colorCyan, "[move configs...]")
-	moveFile(os.Getenv("WP_CONFIG"), os.Getenv("WORDPRESS_PATH")+"/wp-config.php")
 	moveFile(os.Getenv("PHP_FPM_GLOBAL_CONFIG"), "/etc/php8/php-fpm.conf")
 	moveFile(os.Getenv("PHP_FPM_WWW_CONFIG"), "/etc/php8/php-fpm.d/www.conf")
 	printColorln(colorGreen, "[SUCCESS]")
@@ -104,24 +102,22 @@ func startPhpFpm(phpFpmBin string) *exec.Cmd {
 	return phpFpm8
 }
 
-func getWordpress(link string) {
-	var outputFormat string = "wordpress.tar.gz"
+func getAdminer(link string) {
+	var outputFormat string = "adminer.php"
 
-	printColor(colorCyan, "[download and unzip wordpress...]")
+	printColor(colorCyan, "[download adminer...]")
 	wget := exec.Command("wget", "-O", outputFormat, link)
 	err := wget.Run()
 	exitIfError(err)
-	tar := exec.Command("tar", "-xzf", outputFormat, "-C", os.Getenv("DATA_DIR"))
-	err = tar.Run()
-	exitIfError(err)
+	moveFile(os.Getenv("APP_DIR")+"/"+outputFormat, os.Getenv("DATA_DIR")+"/"+outputFormat)
 	printColorln(colorGreen, "[SUCCESS]")
 }
 
 func main() {
 	args := os.Args
 	validateScriptArgs(args)
-	if _, err := os.Stat(os.Getenv("DATA_DIR") + "/wordpress"); os.IsNotExist(err) {
-		getWordpress(os.Getenv("WORDPRESS_LINK"))
+	if _, err := os.Stat(os.Getenv("DATA_DIR") + "/adminer.php"); os.IsNotExist(err) {
+		getAdminer(os.Getenv("ADMINER_LINK"))
 	}
 	moveConfigs()
 	phpFpm8 := startPhpFpm(args[1])

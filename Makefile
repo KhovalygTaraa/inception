@@ -1,5 +1,6 @@
 DCKER_COMPOSE = $(shell command -v docker-compose)
 H=\033[0;36mHELP\033[0m
+VOLUMES_LIST=$(shell command docker volume ls -q)
 
 all:
 ifndef $(DOCKER_COMPOSE)
@@ -9,13 +10,19 @@ else
 endif
 	touch Hello
 
+
 up:
+	@mkdir -p $(HOME)/data/wordpress
+	@mkdir -p $(HOME)/data/adminer
+	@mkdir -p $(HOME)/data/mariadb
 	@docker-compose --env-file srcs/.env -f srcs/docker-compose.yaml up -d --build
 
 down:
 	@docker-compose -f srcs/docker-compose.yaml down
-	@rm -rf ../data/mariadb/*
-	@rm -rf ../data/wordpress/*
+	@docker volume rm $(VOLUMES_LIST)
+	@rm -rf $(HOME)/data/mariadb/*
+	@rm -rf $(HOME)/data/wordpress/*
+	@rm -rf $(HOME)/data/adminer/*
 
 system_prune:
 	@docker system prune -af --volumes
