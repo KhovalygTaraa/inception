@@ -38,10 +38,8 @@ define( 'DB_CHARSET', 'utf8' );
 define( 'DB_COLLATE', '' );
 
 /** redis cache */
-define('WP_REDIS_HOST', "redis";
-define('WP_REDIS_PORT', 6379 );
-define('WP_REDIS_DATABASE', 0);
-define('WP_CACHE', true);
+define('WP_REDIS_HOST', getenv('REDIS_HOST'));
+// define('WP_CACHE', true);
 
 
 /**#@+
@@ -86,7 +84,7 @@ $table_prefix = 'wp_';
  *
  * @link https://wordpress.org/support/article/debugging-in-wordpress/
  */
-define( 'WP_DEBUG', false );
+define( 'WP_DEBUG', true );
 
 /* Add any custom values between this line and the "stop editing" line. */
 

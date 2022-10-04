@@ -148,14 +148,9 @@ func installWp() {
 	adminPass := fmt.Sprintf("--admin_password=%s", os.Getenv("WP_ADMIN_PASSWORD"))
 	adminMail := fmt.Sprintf("--admin_email=%s", os.Getenv("WP_ADMIN_MAIL"))
 	path := fmt.Sprintf("--path=%s", os.Getenv("WORDPRESS_PATH"))
-	//printColor(colorCyan, "[create db...]")
-	//createDb := exec.Command("wp", fmt.Sprintf("--path=%s", os.Getenv("DATA_DIR")), "db", "create")
-	//err := createDb.Run()
-	//exitIfError(err)
-	//printColorln(colorGreen, "[SUCCESS]")
 	printColor(colorCyan, "[install wordpress...]")
-	installWp := exec.Command("wp", path, "core", "install", url, title, admin, adminPass, adminMail)
-	err := installWp.Run()
+	install := exec.Command("wp", path, "core", "install", url, title, admin, adminPass, adminMail)
+	err := install.Run()
 	exitIfError(err)
 	printColorln(colorGreen, "[SUCCESS]")
 	printColor(colorCyan, "[set language...]")
@@ -182,17 +177,29 @@ func installRedis() {
 	printColorln(colorGreen, "[SUCCESS]")
 }
 
+func setUser(user, password, mail string) {
+	path := fmt.Sprintf("--path=%s", os.Getenv("WORDPRESS_PATH"))
+	userPass := fmt.Sprintf("--user_pass=%s", password)
+	role := fmt.Sprintf("--role=editor")
+
+	createUser := exec.Command("wp", path, "user", "create", "redis-cache", user, mail, userPass, role)
+	err := createUser.Run()
+	exitIfError(err)
+}
+
 func main() {
 	args := os.Args
 	validateScriptArgs(args)
-	if _, err := os.Stat(os.Getenv("DATA_DIR") + "/wordpress"); os.IsNotExist(err) {
+	if _, err := os.Stat(os.Getenv("WORDPRESS_PATH")); os.IsNotExist(err) {
 		getWordpress(os.Getenv("WORDPRESS_LINK"))
 		moveConfigs()
 		getWpCli(os.Getenv("WP_CLI_LINK"))
 		installWp()
+		setUser(os.Getenv("WP_USER"), os.Getenv("WP_USER_PASSWORD"), os.Getenv("WP_USER_MAIL"))
 		installRedis()
+	} else {
+		moveConfigs()
 	}
-	moveConfigs()
 	phpFpm8 := startPhpFpm(args[1])
 	givePermissions()
 	err := phpFpm8.Wait()

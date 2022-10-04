@@ -19,6 +19,7 @@ RUN apk update &&\
     apk add php8-simplexml &&\
     apk add php8-zip &&\
     apk add php8-dom &&\
+    apk add php8-ctype &&\
     apk add php8-pecl-redis &&\
     apk add php8-pecl-imagick &&\
     apk add pcre
