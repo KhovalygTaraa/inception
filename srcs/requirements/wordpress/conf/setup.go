@@ -107,12 +107,77 @@ func startPhpFpm(phpFpmBin string) *exec.Cmd {
 func getWordpress(link string) {
 	var outputFormat string = "wordpress.tar.gz"
 
-	printColor(colorCyan, "[download and unzip wordpress...]")
+	printColor(colorCyan, "[download wordpress...]")
 	wget := exec.Command("wget", "-O", outputFormat, link)
 	err := wget.Run()
 	exitIfError(err)
+	printColorln(colorGreen, "[SUCCESS]")
+	printColor(colorCyan, "[unzip wordpress...]")
 	tar := exec.Command("tar", "-xzf", outputFormat, "-C", os.Getenv("DATA_DIR"))
 	err = tar.Run()
+	exitIfError(err)
+	printColorln(colorGreen, "[SUCCESS]")
+}
+
+func getWpCli(link string) {
+	var outputFormat string = "wp-cli.phar"
+
+	printColor(colorCyan, "[download wp-cli...]")
+	wget := exec.Command("wget", "-O", outputFormat, link)
+	err := wget.Run()
+	exitIfError(err)
+	printColorln(colorGreen, "[SUCCESS]")
+	printColor(colorCyan, "[check is workable...]")
+	workable := exec.Command("php8", outputFormat, "--info")
+	err = workable.Run()
+	exitIfError(err)
+	printColorln(colorGreen, "[SUCCESS]")
+	printColor(colorCyan, "[chmod wp-cli.phar...]")
+	exitIfError(os.Chmod(outputFormat, 0755))
+	printColorln(colorGreen, "[SUCCESS]")
+	printColor(colorCyan, "[move wp-cli.phar to /usr/local/bin/wp...]")
+	moveFile(outputFormat, "/usr/local/bin/wp")
+	printColorln(colorGreen, "[SUCCESS]")
+
+}
+
+func installWp() {
+	url := fmt.Sprintf("--url=https://swquinc.42.fr/wordpress")
+	title := fmt.Sprintf("--title=%s", os.Getenv("WP_TITLE"))
+	admin := fmt.Sprintf("--admin_user=%s", os.Getenv("WP_ADMIN"))
+	adminPass := fmt.Sprintf("--admin_password=%s", os.Getenv("WP_ADMIN_PASSWORD"))
+	adminMail := fmt.Sprintf("--admin_email=%s", os.Getenv("WP_ADMIN_MAIL"))
+	path := fmt.Sprintf("--path=%s", os.Getenv("WORDPRESS_PATH"))
+	//printColor(colorCyan, "[create db...]")
+	//createDb := exec.Command("wp", fmt.Sprintf("--path=%s", os.Getenv("DATA_DIR")), "db", "create")
+	//err := createDb.Run()
+	//exitIfError(err)
+	//printColorln(colorGreen, "[SUCCESS]")
+	printColor(colorCyan, "[install wordpress...]")
+	installWp := exec.Command("wp", path, "core", "install", url, title, admin, adminPass, adminMail)
+	err := installWp.Run()
+	exitIfError(err)
+	printColorln(colorGreen, "[SUCCESS]")
+	printColor(colorCyan, "[set language...]")
+	setLang := exec.Command("wp", path, "language", "core", "activate", "en_US")
+	err = setLang.Run()
+	exitIfError(err)
+	printColorln(colorGreen, "[SUCCESS]")
+}
+
+func installRedis() {
+	path := fmt.Sprintf("--path=%s", os.Getenv("WORDPRESS_PATH"))
+	printColor(colorCyan, "[install redis-cache plugin...]")
+	redisInstall := exec.Command("wp", path, "plugin", "install", "redis-cache")
+	err := redisInstall.Run()
+	exitIfError(err)
+	printColorln(colorGreen, "[SUCCESS]")
+	printColor(colorCyan, "[activate redis-cache plugin...]")
+	redisActivate := exec.Command("wp", path, "plugin", "activate", "redis-cache")
+	err = redisActivate.Run()
+	exitIfError(err)
+	redisEnable := exec.Command("wp", path, "redis", "enable")
+	err = redisEnable.Run()
 	exitIfError(err)
 	printColorln(colorGreen, "[SUCCESS]")
 }
@@ -122,6 +187,10 @@ func main() {
 	validateScriptArgs(args)
 	if _, err := os.Stat(os.Getenv("DATA_DIR") + "/wordpress"); os.IsNotExist(err) {
 		getWordpress(os.Getenv("WORDPRESS_LINK"))
+		moveConfigs()
+		getWpCli(os.Getenv("WP_CLI_LINK"))
+		installWp()
+		installRedis()
 	}
 	moveConfigs()
 	phpFpm8 := startPhpFpm(args[1])

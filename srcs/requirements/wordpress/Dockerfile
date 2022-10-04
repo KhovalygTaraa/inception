@@ -11,6 +11,7 @@ RUN apk update &&\
     apk add php8-mysqli &&\
     apk add php8-curl &&\
     apk add php8-exif &&\
+    apk add php8-phar &&\
     apk add php8-fileinfo &&\
     apk add php8-mbstring &&\
     apk add php8-xml &&\
@@ -28,7 +29,8 @@ ENV WP_CONFIG="/app/wp-config.php"\
     PHP_FPM_WWW_CONFIG="/app/www.conf"\
     APP_DIR="/app"\
     DATA_DIR="/app/data"\
-    WORDPRESS_LINK="https://wordpress.org/wordpress-6.0.tar.gz"
+    WORDPRESS_LINK="https://wordpress.org/wordpress-6.0.tar.gz"\
+    WP_CLI_LINK="https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar"
 
 WORKDIR $APP_DIR
 

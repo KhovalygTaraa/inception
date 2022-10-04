@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 )
 
 const (
@@ -48,41 +47,19 @@ func validateScriptArgs(args []string) {
 	printColorln(colorGreen, "[SUCCESS]")
 }
 
-func moveFile(from, to string) {
-	mv := exec.Command("cp", "-R", from, to)
-	err := mv.Run()
-	exitIfError(err)
-}
-
-func startFtp(ftpBin string) *exec.Cmd {
-	printColor(colorCyan, "[start vsftpd...]")
-	ftp := exec.Command(ftpBin)
+func startPrometheus(prometheusBin, config string) *exec.Cmd {
+	printColor(colorCyan, "[start prometheus...]")
+	ftp := exec.Command(prometheusBin, config)
 	err := ftp.Start()
 	exitIfError(err)
 	printColorln(colorGreen, "[SUCCESS]")
 	return ftp
 }
 
-func createUser(user, password string) {
-	printColor(colorCyan, "[create user...]")
-	addUser := exec.Command("adduser", "-D", "--home", "/app/data", "--shell", "bash", user)
-	err := addUser.Run()
-	exitIfError(err)
-	printColorln(colorGreen, "[SUCCESS]")
-	printColor(colorCyan, "[set password...]")
-	setPassword := exec.Command("bash", "-c", fmt.Sprintf("echo %s:%s | chpasswd", user, password))
-	err = setPassword.Run()
-	exitIfError(err)
-	printColorln(colorGreen, "[SUCCESS]")
-}
 func main() {
 	args := os.Args
 	validateScriptArgs(args)
-	moveFile("/app/vsftpd.conf", "/etc/vsftpd.conf")
-	if _, err := user.Lookup(os.Getenv("FTP_USER")); os.IsNotExist(err) {
-		createUser(os.Getenv("FTP_USER"), os.Getenv("FTP_PASSWORD"))
-	}
-	ftp := startFtp(args[1])
+	ftp := startPrometheus(args[1], args[2])
 	err := ftp.Wait()
 	exitIfError(err)
 }

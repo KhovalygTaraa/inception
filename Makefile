@@ -15,10 +15,11 @@ up:
 	@mkdir -p $(HOME)/data/wordpress
 	@mkdir -p $(HOME)/data/adminer
 	@mkdir -p $(HOME)/data/mariadb
+	@cp $(HOME)/inception/srcs/requirements/tools/daemon.json /etc/docker/daemon.json
 	@docker-compose --env-file srcs/.env -f srcs/docker-compose.yaml up -d --build
 
 down:
-	@docker-compose -f srcs/docker-compose.yaml down
+	@docker-compose --env-file srcs/.env -f srcs/docker-compose.yaml down
 	@docker volume rm $(VOLUMES_LIST)
 	@rm -rf $(HOME)/data/mariadb/*
 	@rm -rf $(HOME)/data/wordpress/*
