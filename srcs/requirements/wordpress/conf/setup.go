@@ -178,13 +178,15 @@ func installRedis() {
 }
 
 func setUser(user, password, mail string) {
+	printColor(colorCyan, "[set user...]")
 	path := fmt.Sprintf("--path=%s", os.Getenv("WORDPRESS_PATH"))
 	userPass := fmt.Sprintf("--user_pass=%s", password)
 	role := fmt.Sprintf("--role=editor")
 
-	createUser := exec.Command("wp", path, "user", "create", "redis-cache", user, mail, userPass, role)
+	createUser := exec.Command("wp", "user", "create", path, user, mail, userPass, role)
 	err := createUser.Run()
 	exitIfError(err)
+	printColorln(colorGreen, "[SUCCESS]")
 }
 
 func main() {
