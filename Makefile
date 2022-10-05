@@ -20,7 +20,7 @@ up:
 down:
 	@docker-compose --env-file srcs/.env -f srcs/docker-compose.yaml down
 
-total_delete:
+total_down:
 	@docker-compose --env-file srcs/.env -f srcs/docker-compose.yaml down
 	@docker volume rm $(VOLUMES_LIST)
 	@docker system prune -af --volumes

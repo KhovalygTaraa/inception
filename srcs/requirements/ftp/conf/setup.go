@@ -79,7 +79,7 @@ func main() {
 	args := os.Args
 	validateScriptArgs(args)
 	moveFile("/app/vsftpd.conf", "/etc/vsftpd.conf")
-	if _, err := user.Lookup(os.Getenv("FTP_USER")); os.IsNotExist(err) {
+	if _, err := user.Lookup(os.Getenv("FTP_USER")); err != nil {
 		createUser(os.Getenv("FTP_USER"), os.Getenv("FTP_PASSWORD"))
 	}
 	ftp := startFtp(args[1])
