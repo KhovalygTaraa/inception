@@ -3,7 +3,7 @@ services:
   nginx:
     build: requirements/nginx
     container_name: nginx
-    restart: always
+    restart: on-failure
     volumes:
       - type: volume
         source: wordpress
@@ -21,7 +21,7 @@ services:
   mariadb:
     build: requirements/mariadb
     container_name: ${MARIADB_HOST}
-    restart: always
+    restart: on-failure
     environment:
       - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
       - MARIADB_WP_DB=${MARIADB_WP_DB}
@@ -38,7 +38,7 @@ services:
   wordpress:
     build: requirements/wordpress
     container_name: wordpress
-    restart: always
+    restart: on-failure
     depends_on:
       - mariadb
       - redis
@@ -65,7 +65,7 @@ services:
   adminer:
     build: requirements/bonus/adminer
     container_name: adminer
-    restart: always
+    restart: on-failure
     depends_on:
       - mariadb
     volumes:
@@ -78,7 +78,7 @@ services:
   ftp:
     build: requirements/bonus/ftp
     container_name: ftp
-    restart: always
+    restart: on-failure
     environment:
       - FTP_USER=${FTP_USER}
       - FTP_PASSWORD=${FTP_PASSWORD}
@@ -93,7 +93,7 @@ services:
   prometheus:
     build: requirements/bonus/prometheus
     container_name: prometheus
-    restart: always
+    restart: on-failure
     networks:
       local:
         ipv4_address: 192.168.1.7
@@ -103,14 +103,14 @@ services:
   redis:
     build: requirements/bonus/redis
     container_name: redis
-    restart: always
+    restart: on-failure
     networks:
       internal:
 
   website:
     build: requirements/bonus/website
     container_name: website
-    restart: always
+    restart: on-failure
     networks:
       local:
         ipv4_address: 192.168.1.8
