@@ -9,8 +9,8 @@ RUN apk update &&\
 
 WORKDIR /app
 
-COPY ./conf /app
+COPY conf /app
 
 ENTRYPOINT ["go", "run", "setup.go"]
-CMD ["redis-server", "/etc/redis.conf"]
+CMD ["redis-server", "/app/redis.conf"]
 EXPOSE 6379

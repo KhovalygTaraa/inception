@@ -4,12 +4,13 @@ LABEL maintainer="swquinc"
 
 RUN apk update &&\
 	apk upgrade &&\
-    apk add go
+    apk add prometheus &&\
+    apk add go bash
 
 WORKDIR /app
 
-COPY ./conf /app
+COPY conf /app
 
 ENTRYPOINT ["go", "run", "setup.go"]
-
-EXPOSE 9999
+CMD ["prometheus", "--config.file=/app/prometheus.yml"]
+EXPOSE 9090

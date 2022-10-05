@@ -66,7 +66,6 @@ func moveFile(from, to string) {
 func main() {
 	args := os.Args
 	validateScriptArgs(args)
-	moveFile("/app/redis.conf", args[2])
 	ftp := startRedis(args[1], args[2])
 	err := ftp.Wait()
 	exitIfError(err)

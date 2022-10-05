@@ -4,13 +4,13 @@ LABEL maintainer="swquinc"
 
 RUN apk update &&\
 	apk upgrade &&\
-    apk add prometheus &&\
+    apk add vsftpd &&\
     apk add go bash
 
 WORKDIR /app
 
-COPY ./conf /app
+COPY conf /app
 
 ENTRYPOINT ["go", "run", "setup.go"]
-CMD ["prometheus", "--config.file=/app/prometheus.yml"]
-EXPOSE 9090
+CMD ["vsftpd"]
+EXPOSE 20 21 20005 20006 20007

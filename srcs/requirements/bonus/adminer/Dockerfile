@@ -31,7 +31,7 @@ ENV ADMINER_PATH="/app/data/adminer"\
 
 WORKDIR $APP_DIR
 
-COPY ./conf $APP_DIR
+COPY conf $APP_DIR
 
 ENTRYPOINT ["go", "run", "setup.go"]
 CMD ["php-fpm8"]

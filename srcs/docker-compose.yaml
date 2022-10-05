@@ -67,7 +67,7 @@ services:
 #        ipv4_address: 192.168.1.4
 
   adminer:
-    build: requirements/adminer
+    build: requirements/bonus/adminer
     container_name: adminer
     restart: always
     depends_on:
@@ -82,7 +82,7 @@ services:
 #        ipv4_address: 192.168.1.5
 
   ftp:
-    build: requirements/ftp
+    build: requirements/bonus/ftp
     container_name: ftp
     restart: always
     environment:
@@ -97,7 +97,7 @@ services:
         ipv4_address: 192.168.1.6
 
   prometheus:
-    build: requirements/prometheus
+    build: requirements/bonus/prometheus
     container_name: prometheus
     restart: always
     networks:
@@ -107,14 +107,14 @@ services:
       - "9090:9090"
 
   redis:
-    build: requirements/redis
+    build: requirements/bonus/redis
     container_name: redis
     restart: always
     networks:
       internal:
 
   website:
-    build: requirements/website
+    build: requirements/bonus/website
     container_name: website
     restart: always
     networks:
