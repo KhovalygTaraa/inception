@@ -6,7 +6,7 @@ RUN apk update &&\
 	apk upgrade &&\
     apk add go
 
-WORKDIR $APP_DIR
+WORKDIR /app
 
 COPY ./conf /app
 

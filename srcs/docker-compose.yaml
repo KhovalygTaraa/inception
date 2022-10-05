@@ -112,8 +112,16 @@ services:
     restart: always
     networks:
       internal:
-#      local:
-#        ipv4_address: 192.168.1.8
+
+  website:
+    build: requirements/website
+    container_name: website
+    restart: always
+    networks:
+      local:
+        ipv4_address: 192.168.1.8
+    ports:
+      - "9999:9999"
 
 volumes:
   mariadb:
