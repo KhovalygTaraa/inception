@@ -34,8 +34,6 @@ services:
         target: /app/data
     networks:
       internal:
-#      local:
-#        ipv4_address: 192.168.1.3
 
   wordpress:
     build: requirements/wordpress
@@ -63,8 +61,6 @@ services:
         target: /app/data
     networks:
       internal:
-#      local:
-#        ipv4_address: 192.168.1.4
 
   adminer:
     build: requirements/bonus/adminer
@@ -78,8 +74,6 @@ services:
         target: /app/data
     networks:
       internal:
-#      local:
-#        ipv4_address: 192.168.1.5
 
   ftp:
     build: requirements/bonus/ftp
